@@ -133,12 +133,15 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     });
   }
 }
+function fxBtn(el) {
+  if (!btnFx || !el) return;
+  el.classList.remove('fx');
+  void el.offsetWidth;
+  el.classList.add('fx');
+}
 document.querySelectorAll('button').forEach((b) => {
   b.addEventListener('click', () => {
-    if (!btnFx) return;
-    b.classList.remove('fx');
-    void b.offsetWidth;
-    b.classList.add('fx');
+    fxBtn(b);
   });
 });
 function fmt(s) {
@@ -536,26 +539,26 @@ document.addEventListener('keydown', (e) => {
   const ae = document.activeElement;
   if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
   if (ui.likeConfirm.classList.contains('show')) {
-    if (e.key === 'Enter') { e.preventDefault(); hideLikeConfirm(); uiPlay('unlike'); cmd('like'); }
+    if (e.key === 'Enter') { e.preventDefault(); hideLikeConfirm(); fxBtn(ui.btnLike); uiPlay('unlike'); cmd('like'); }
     else if (e.key === 'Escape') { e.preventDefault(); hideLikeConfirm(); }
     return;
   }
   const off = (a) => !!(keyOff && keyOff[a]);
   const c = popupKeyChar(e);
   if (!c) {
-    if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePlay(); }
+    if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); fxBtn(ui.btnToggle); togglePlay(); }
     return;
   }
   if (c === hotkeys.nextKey && !off('next')) {
-    e.preventDefault(); startSwap(1); uiPlay('next'); cmd('next');
+    e.preventDefault(); fxBtn(ui.btnNext); startSwap(1); uiPlay('next'); cmd('next');
   } else if (c === hotkeys.prevKey && !off('prev')) {
-    e.preventDefault(); startSwap(-1); uiPlay('prev'); cmd('prev');
+    e.preventDefault(); fxBtn(ui.btnPrev); startSwap(-1); uiPlay('prev'); cmd('prev');
   } else if (c === hotkeys.ffKey && !off('ff')) {
     e.preventDefault(); uiPlay('ff'); cmd('seekBy', { delta: ffSeconds });
   } else if (c === hotkeys.rwKey && !off('rw')) {
     e.preventDefault(); uiPlay('rw'); cmd('seekBy', { delta: -rwSeconds });
   } else if (c === hotkeys.likeKey && !off('like')) {
-    e.preventDefault(); doLike();
+    e.preventDefault(); fxBtn(ui.btnLike); doLike();
   }
 });
 ui.btnMute.addEventListener('click', () => {
