@@ -2,7 +2,7 @@
 
 该插件为习惯用按键刷歌单的用户设计:在 SoundCloud 页面用单键切歌/快进/喜欢,点工具栏图标弹出迷你遥控器,并支持 Chrome 全局快捷键(任意页面都能控制播放)。
 
-![Chrome](https://img.shields.io/badge/Chrome-MV3-ff5500) ![Privacy](https://img.shields.io/badge/privacy-零网络请求-4a90d9)
+![Chrome](https://img.shields.io/badge/Chrome-MV3-ff5500)
 
 <img src="screenshots/preview_screenshot.png" alt="SCKit 弹窗遥控器与设置页" width="640">
 
@@ -13,12 +13,6 @@
 - **弹窗迷你遥控器**:播放/暂停、切歌、随机、循环、静音、音量、进度、喜欢,与页面实时同步
 - **个性化反馈**:按键音效、气泡提示(大小/位置可调)、倾斜动画、悬停描边
 - 暗/浅主题、进度条与音量滑块样式、中英双语
-
-## 隐私
-
-- 扩展本身**零网络请求**,不收集、不上传、不同步任何数据;所有配置仅存于浏览器本地(`chrome.storage.sync`)
-- 仅在以下情况向页面注入脚本:① soundcloud.com 页面(核心遥控功能);② 当你按全局快捷键且当前标签页不是 SoundCloud 时,向当前页显示一个按键反馈气泡(仅显示,不读取页面内容)
-- 所有控制指令只发给 soundcloud.com 标签页
 
 ## 安装
 
