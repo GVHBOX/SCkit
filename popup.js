@@ -7,7 +7,7 @@ const ui = {
   icoPlay: $('icoPlay'), icoPause: $('icoPause'), icoSpin: $('icoSpin'),
   btnMute: $('btnMute'), vol: $('vol'), volWhite: $('volWhite'), volWFill: $('volWFill'), volPct: $('volPct'), openOpts: $('openOpts'),
   btnLike: $('btnLike'), likeConfirm: $('likeConfirm'), lcCancel: $('lcCancel'), lcOk: $('lcOk'),
-  btnTheme: $('btnTheme'), openSc: $('openSc'), staleTip: $('staleTip')
+  btnTheme: $('btnTheme'), openSc: $('openSc'), staleTip: $('staleTip'), btnReload: $('btnReload')
 };
 let tabId = null;
 let titleKey = null;
@@ -21,6 +21,7 @@ let ffSeconds = DEFAULTS.ffSeconds, rwSeconds = DEFAULTS.rwSeconds;
 let theme = 'dark';
 let soundUi = true, soundScheme = 'classic', soundVolume = 20;
 let swapAnim = true;
+let btnFx = true;
 let pendingSwap = 0;
 let swapWait = null;
 let lastTitle = null;
@@ -77,7 +78,7 @@ function applyHotkeyCfg(v) {
   rwSeconds = Number.isFinite(Number(v.rwSeconds)) && Number(v.rwSeconds) > 0 ? Number(v.rwSeconds) : DEFAULTS.rwSeconds;
 }
 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-  chrome.storage.sync.get({ lang: DEFAULTS.lang, likeConfirm: DEFAULTS.likeConfirm, theme: DEFAULTS.theme, soundUi: DEFAULTS.soundUi, soundScheme: DEFAULTS.soundScheme, soundVolume: DEFAULTS.soundVolume, tilt: DEFAULTS.tilt, swapAnim: DEFAULTS.swapAnim, hoverRing: DEFAULTS.hoverRing, progressStyle: DEFAULTS.progressStyle, volumeStyle: DEFAULTS.volumeStyle, progressColor: DEFAULTS.progressColor, volumeColor: DEFAULTS.volumeColor, lastVol: 50, nextKey: DEFAULTS.nextKey, prevKey: DEFAULTS.prevKey, ffKey: DEFAULTS.ffKey, rwKey: DEFAULTS.rwKey, likeKey: DEFAULTS.likeKey, ffSeconds: DEFAULTS.ffSeconds, rwSeconds: DEFAULTS.rwSeconds, keyOff: DEFAULTS.keyOff }, (v) => {
+  chrome.storage.sync.get({ lang: DEFAULTS.lang, likeConfirm: DEFAULTS.likeConfirm, theme: DEFAULTS.theme, soundUi: DEFAULTS.soundUi, soundScheme: DEFAULTS.soundScheme, soundVolume: DEFAULTS.soundVolume, tilt: DEFAULTS.tilt, swapAnim: DEFAULTS.swapAnim, btnFx: DEFAULTS.btnFx, hoverRing: DEFAULTS.hoverRing, progressStyle: DEFAULTS.progressStyle, volumeStyle: DEFAULTS.volumeStyle, progressColor: DEFAULTS.progressColor, volumeColor: DEFAULTS.volumeColor, lastVol: 50, nextKey: DEFAULTS.nextKey, prevKey: DEFAULTS.prevKey, ffKey: DEFAULTS.ffKey, rwKey: DEFAULTS.rwKey, likeKey: DEFAULTS.likeKey, ffSeconds: DEFAULTS.ffSeconds, rwSeconds: DEFAULTS.rwSeconds, keyOff: DEFAULTS.keyOff }, (v) => {
     applyHotkeyCfg(v);
     lang = v.lang || DEFAULTS.lang;
     lastVol = Number.isFinite(Number(v.lastVol)) ? Number(v.lastVol) : 50;
@@ -86,6 +87,7 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     soundScheme = v.soundScheme || DEFAULTS.soundScheme;
     soundVolume = v.soundVolume;
     swapAnim = v.swapAnim !== false;
+    btnFx = v.btnFx !== false;
     applyHoverRing(v.hoverRing);
     applyTilt(v.tilt);
     applyTheme(v.theme);
@@ -121,6 +123,7 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
       if (ch.soundVolume !== undefined) soundVolume = ch.soundVolume.newValue;
       if (ch.tilt !== undefined) applyTilt(ch.tilt.newValue);
       if (ch.swapAnim !== undefined) swapAnim = ch.swapAnim.newValue !== false;
+      if (ch.btnFx !== undefined) btnFx = ch.btnFx.newValue !== false;
       if (ch.hoverRing !== undefined) applyHoverRing(ch.hoverRing.newValue);
       if (ch.progressStyle !== undefined) applyProgressStyle(ch.progressStyle.newValue);
       if (ch.volumeStyle !== undefined) applyVolumeStyle(ch.volumeStyle.newValue);
@@ -132,6 +135,7 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
 }
 document.querySelectorAll('button').forEach((b) => {
   b.addEventListener('click', () => {
+    if (!btnFx) return;
     b.classList.remove('fx');
     void b.offsetWidth;
     b.classList.add('fx');
@@ -622,6 +626,17 @@ ui.vol.addEventListener('blur', () => endVolDrag(true));
 ui.vol.addEventListener('pointercancel', () => { volDrag = false; });
 ui.openOpts.addEventListener('click', () => {
   if (chrome.runtime && chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
+});
+ui.btnReload.addEventListener('click', () => {
+  // 刷新正在控制的 SoundCloud 标签页,让弹窗重新同步状态
+  if (tabId == null) {
+    poll();
+    return;
+  }
+  chrome.tabs.reload(tabId, {}, () => {
+    void chrome.runtime.lastError;
+    setTimeout(poll, 1200);
+  });
 });
 ui.openSc.addEventListener('click', () => {
   chrome.tabs.create({ url: 'https://soundcloud.com/' }, () => { void chrome.runtime.lastError; });

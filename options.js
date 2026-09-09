@@ -5,7 +5,7 @@ const PREV = window.SCKIT_SOUND.BASE;
 let lang = DEFAULTS.lang || 'zh';
 const t = (k, v) => (window.SCKIT_t ? window.SCKIT_t(lang, k, v) : k);
 const els = {};
-ids.concat(['soundKeys', 'soundUi', 'toastKey', 'toastIcon', 'toastText', 'toastSize', 'soundVolume', 'soundScheme', 'toastPos', 'lang', 'likeConfirm', 'tilt', 'swapAnim', 'hoverRing', 'progressStyle', 'volumeStyle', 'progressWhite', 'progressOrange', 'volumeWhite', 'volumeOrange']).forEach((id) => { els[id] = document.getElementById(id); });
+ids.concat(['soundKeys', 'soundUi', 'toastKey', 'toastIcon', 'toastText', 'toastSize', 'soundVolume', 'soundScheme', 'toastPos', 'lang', 'likeConfirm', 'tilt', 'swapAnim', 'btnFx', 'hoverRing', 'progressStyle', 'volumeStyle', 'progressWhite', 'progressOrange', 'volumeWhite', 'volumeOrange']).forEach((id) => { els[id] = document.getElementById(id); });
 const volVal = document.getElementById('volVal');
 const customBox = document.getElementById('customBox');
 const stage = document.getElementById('stage');
@@ -204,6 +204,7 @@ function fillForm(v, cs, ko) {
   GLOBAL_CMDS.forEach((c) => { cmdOffState[c] = cmdOff[c] === true; applyOff(c); });
   els.tilt.value = v.tilt != null ? v.tilt : DEFAULTS.tilt;
   els.swapAnim.checked = v.swapAnim !== false;
+  els.btnFx.checked = v.btnFx !== false;
   els.hoverRing.checked = v.hoverRing === true;
   els.progressStyle.value = v.progressStyle === 'bar' ? 'bar' : DEFAULTS.progressStyle;
   els.volumeStyle.value = v.volumeStyle === 'white' ? 'white' : 'slider';
@@ -272,6 +273,7 @@ document.getElementById('save').addEventListener('click', () => {
   const tiltNum = parseInt(els.tilt.value, 10);
   data.tilt = Math.max(0, Math.min(45, Number.isFinite(tiltNum) ? tiltNum : DEFAULTS.tilt));
   data.swapAnim = els.swapAnim.checked;
+  data.btnFx = els.btnFx.checked;
   data.hoverRing = els.hoverRing.checked;
   data.progressStyle = els.progressStyle.value === 'wave' ? 'wave' : 'bar';
   data.volumeStyle = els.volumeStyle.value === 'white' ? 'white' : 'slider';
@@ -313,6 +315,7 @@ document.getElementById('reset').addEventListener('click', () => {
     likeConfirm: DEFAULTS.likeConfirm,
     tilt: DEFAULTS.tilt,
     swapAnim: DEFAULTS.swapAnim,
+    btnFx: DEFAULTS.btnFx,
     hoverRing: DEFAULTS.hoverRing,
     progressStyle: DEFAULTS.progressStyle,
     volumeStyle: DEFAULTS.volumeStyle,
