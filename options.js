@@ -60,6 +60,7 @@ GLOBAL_CMDS.forEach((c) => {
 });
 document.querySelectorAll('button').forEach((b) => {
   b.addEventListener('click', () => {
+    if (els.btnFx && !els.btnFx.checked) return;
     b.classList.remove('fx');
     void b.offsetWidth;
     b.classList.add('fx');

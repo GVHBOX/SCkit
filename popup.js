@@ -631,7 +631,6 @@ ui.openOpts.addEventListener('click', () => {
   if (chrome.runtime && chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
 });
 ui.btnReload.addEventListener('click', () => {
-  // 刷新正在控制的 SoundCloud 标签页,让弹窗重新同步状态
   if (tabId == null) {
     poll();
     return;
