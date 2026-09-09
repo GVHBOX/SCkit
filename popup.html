@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>SCKit</title>
+<style>
+  :root{
+    --bg:#101114; --panel:#191b1f; --panel2:#1f2227; --line:#000;
+    --tx:#f2f3f5; --muted:#9aa0a8; --accent:#ff5500; --track:#31343b;
+    --tiltn:15;
+    --hover-stroke:0; /* 0=关白色描边动画，1=开。由设置页 hoverRing 开关经 popup.js 写入（原注释称联动 sync.strokeOn，但该键从未接线，描边此前恒开） */
+  }
+  body.light{
+    --bg:#f5f6f8; --panel:#fff; --panel2:#eceef1;
+    --tx:#16181c; --muted:#6b7078; --track:#d5d8dd;
+  }
+  *{box-sizing:border-box}
+  html{scrollbar-width:none}
+  html::-webkit-scrollbar{width:0;height:0}
+  body{width:340px;margin:0 0 5px;background:var(--bg);color:var(--tx);
+    font:15.5px/1.5 "Segoe UI",system-ui,"Microsoft YaHei",sans-serif}
+  header{display:flex;align-items:center;gap:10px;padding:7px 12px 10px}
+  header>svg{flex:0 0 auto}
+  #btnTheme{margin-left:auto}
+  .heart{width:36px;height:36px;flex:0 0 auto;position:relative;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--panel2);border:3px solid var(--line);border-radius:10px;box-shadow:0 3px 0 var(--line);
+    padding:0;cursor:pointer;color:var(--muted);transition:transform .06s,box-shadow .06s}
+  .heart:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+  .heart:hover{transform:rotate(calc(var(--tiltn) * -1 * 1deg))}
+  .heart .hp{fill:none;stroke:currentColor;stroke-width:2;transition:fill .15s,color .15s}
+  .heart.on{color:var(--accent)}
+  .heart.on .hp{fill:currentColor}
+  .lconf{position:fixed;top:56px;left:12px;z-index:20;display:none;gap:8px;
+    background:var(--panel);border:3px solid var(--line);border-radius:12px;
+    box-shadow:0 4px 0 rgba(0,0,0,.55);padding:8px}
+  .lconf.show{display:flex}
+  button.lcb{width:56px;height:34px;position:relative;cursor:pointer;color:var(--tx);
+    border:3px solid var(--line);border-radius:10px;background:var(--panel2);box-shadow:0 3px 0 var(--line);
+    font-family:inherit;font-size:13px;font-weight:700;line-height:1;padding:0;
+    transition:transform .06s,box-shadow .06s}
+  button.lcb:hover{transform:rotate(calc(var(--tiltn) * -1.05 * 1deg))}
+  button.lcb:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+  #lcOk{background:var(--accent);color:#fff}
+  .gear{width:36px;height:36px;flex:0 0 auto;position:relative;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--panel2);border:3px solid var(--line);border-radius:10px;box-shadow:0 3px 0 var(--line);
+    font-size:17px;line-height:1;padding:0;cursor:pointer;transition:transform .06s,box-shadow .06s}
+  .gear:hover{transform:rotate(calc(var(--tiltn) * -1 * 1deg))}
+  .gear:active{transform:translateY(2px) rotate(calc(var(--tiltn) * -1 * 1deg));box-shadow:0 1px 0 var(--line)}
+  .now{margin:0 12px 10px;padding:5px;background:var(--panel);border:3px solid var(--line);
+    border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.55)}
+  /* 封面恒方形全显：高度只由宽度决定，任何标题都不影响布局 */
+  .now .art{width:100%;aspect-ratio:1/1;border:3px solid var(--line);border-radius:10px;
+    background:#2a2e35 center/cover no-repeat;
+    background-image:linear-gradient(135deg,#2a2e35 45%,#22252a 45%)}
+  @keyframes artIn{from{opacity:.2}to{opacity:1}}
+  .now .art.art-in{animation:artIn .28s ease-out both}
+  .titlerow{margin:2px 4px 0;min-width:0;text-align:center}
+  /* 标题恒单行：放不下时循环滚动（跑马灯），行高永远不变 => 布局零跳动 */
+  .title{display:flex;justify-content:center;font-size:15.5px;font-weight:700;line-height:1.35;
+    height:1.35em;overflow:hidden;white-space:nowrap}
+  .title .tscroll{display:inline-block;max-width:100%;text-overflow:ellipsis;overflow:hidden;flex:0 1 auto}
+  .title.scroll{justify-content:flex-start}
+  .title .tscroll.scroll{max-width:none;flex:0 0 auto;text-overflow:clip;padding-right:2.4em;animation:sck-marquee 12s linear infinite}
+  /* 无缝循环 + 开头停顿 5s：轨道=2×(文本+间隔)。keyframes 百分比不能用 CSS 变量，
+     由 JS 按标题动态重建规则（id=sckit-marquee-style），此处是静态兜底 */
+  .title .tscroll.scroll::after{content:attr(data-dup);padding-left:2.4em}
+  @keyframes sck-marquee{0%,15%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .artist{margin:0 4px;font-size:12.5px;line-height:1.3;height:1.3em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+  .progress{margin:10px 14px 0}
+  .progress .times{display:flex;justify-content:space-between;font:600 12.5px/1 Consolas,monospace;color:var(--muted);margin-bottom:3px}
+  /* 进度区定高槽位（含上下留白）：wave 与 bar 两种样式同高，切换零位移 */
+  .pslot{height:46px;display:flex;align-items:center}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;
+    background:transparent;cursor:pointer;margin:0}
+  input[type=range]::-webkit-slider-runnable-track{height:12px;border-radius:7px;border:2px solid #000;
+    background:linear-gradient(to right,var(--accent) var(--fill,0%),var(--track) var(--fill,0%))}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;
+    border-radius:50%;background:#fff;border:3px solid #000;margin-top:-7px;box-shadow:0 2px 0 #000}
+  body.pwhite #seek::-webkit-slider-runnable-track{background:linear-gradient(to right,#fff var(--fill,0%),var(--track) var(--fill,0%))}
+  #vol::-webkit-slider-runnable-track{background:linear-gradient(to right,var(--accent) var(--fill,0%),var(--track) var(--fill,0%))}
+  body.vwhite #vol::-webkit-slider-runnable-track{background:linear-gradient(to right,#fff var(--fill,0%),var(--track) var(--fill,0%))}
+  body.paused #vol::-webkit-slider-runnable-track{background:linear-gradient(to right,#5a5f68 var(--fill,0%),var(--track) var(--fill,0%))}
+  #vol::-webkit-slider-runnable-track,.volwhite .wfill,.now .art{
+    transition:background .25s ease,filter .25s ease,opacity .25s ease}
+  body.paused .now .art{filter:grayscale(1);opacity:.75}
+  body.paused .now .art.art-in{animation:none}
+  body.paused #seek::-webkit-slider-runnable-track{background:linear-gradient(to right,#5a5f68 var(--fill,0%),var(--track) var(--fill,0%))}
+  .wave{position:relative;height:40px;width:100%;display:flex;align-items:flex-end;gap:2px;cursor:pointer;touch-action:none}
+  .wave span{flex:1;min-width:1px;background:var(--track);border-radius:1px}
+  .wave span.on{background:var(--accent)}
+  body.pwhite .wave span.on{background:var(--tx)}
+  body.paused .wave span.on{background:#5a5f68}
+  .wave .wcur{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--accent);border-radius:1px;pointer-events:none}
+  body.pwhite .wave .wcur{background:var(--tx)}
+  body.paused .wave .wcur{background:#5a5f68}
+  .controls{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px 0 0}
+  button.kb{border:3px solid var(--line);border-radius:12px;cursor:pointer;color:var(--tx);position:relative;
+    background:var(--panel2);box-shadow:0 4px 0 var(--line);
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .06s,box-shadow .06s}
+  button.kb:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+  button.kb:hover{transform:rotate(calc(var(--tiltn) * -0.9 * 1deg))}
+  button.side:hover{transform:rotate(calc(var(--tiltn) * -0.8 * 1deg))}
+  button.main:hover{transform:rotate(calc(var(--tiltn) * -0.7 * 1deg))}
+  button.kb:disabled{opacity:.35;cursor:default}
+  button.side{width:52px;height:44px}
+  button.main{width:64px;height:52px;background:#5a5f68}
+  button.main:hover{background:#6a7078}
+  button.main.playing{background:var(--accent)}
+  button.main.playing:hover{background:#ff6a1f}
+  /* 缓冲转圈：白色圆环旋转，显示时替换 ⏸️ 图标（缓存加载期） */
+  #icoSpin{width:20px;height:20px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;
+    border-radius:50%;animation:sck-spin .8s linear infinite}
+  @keyframes sck-spin{to{transform:rotate(360deg)}}
+  button.mini{width:44px;height:40px;position:relative}
+  button.kb.on{background:var(--accent);color:#fff}
+  button.mini .r1{position:absolute;top:2px;right:5px;font:800 9.5px/1 Consolas,monospace;color:var(--accent);display:none;font-style:normal}
+  button.mini.rone .r1{display:block;color:#fff}
+  button svg{pointer-events:none}
+  @keyframes btnFx{from{opacity:1;box-shadow:0 0 0 3px rgba(255,85,0,.65)}to{opacity:0;box-shadow:0 0 0 12px rgba(255,85,0,0)}}
+  button.fx::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;animation:btnFx .35s ease-out forwards}
+  button.kb::before,.heart::before,.gear::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    border:2px solid #fff;opacity:calc(var(--hover-stroke,1) * 0);
+    transition:opacity .14s ease-out;
+  }
+  button.kb:hover::before,.heart:hover::before,.gear:hover::before{opacity:calc(var(--hover-stroke,1) * 1);transition:opacity .14s ease-out}
+  .volrow{display:flex;align-items:center;gap:10px;margin:10px 14px 0;padding-bottom:7px}
+  /* 音量区定高槽位：slider 与 white 两种样式同高，切换零位移 */
+  .volwrap{height:30px}
+  .volrow button{width:42px;height:38px;flex:0 0 auto}
+  #btnMute.muted{color:#5a5f68}
+  .volrow .volwrap{flex:1;display:flex;align-items:center;gap:8px}
+  .volrow .pct{font:600 12.5px/1 Consolas,monospace;color:var(--muted);width:38px;text-align:right}
+  .volwhite{position:relative;flex:1;height:30px;background:var(--track);border:3px solid var(--line);
+    border-radius:10px;box-shadow:0 3px 0 var(--line);cursor:pointer;overflow:hidden;touch-action:none}
+  .volwhite .wfill{position:absolute;top:0;bottom:0;left:0;width:100%;background:var(--accent)}
+  body.vwhite .volwhite .wfill{background:#fff}
+  body.paused .volwhite .wfill{background:#5a5f68}
+  body.tight header{padding:0 12px}
+  body.tight .now{padding:2px}
+  body.tight .progress{margin-top:2px}
+  body.tight input[type=range]{height:18px}
+  body.tight .wave{height:26px}
+  body.tight .controls{margin-top:0}
+  body.tight button.main{height:46px}
+  body.tight .volrow{margin-top:0;padding-bottom:2px}
+  body.tight .volrow button{width:38px;height:34px}
+  .empty{padding:40px 20px 44px;text-align:center;display:none}
+  #staleTip{display:none;margin:14px 12px 6px;padding:10px 14px;background:var(--panel);
+    border:3px solid var(--line);border-radius:12px;box-shadow:0 3px 0 rgba(0,0,0,.45);
+    font-size:13px;line-height:1.5;color:var(--muted);text-align:center}
+  body.stale #staleTip{display:block}
+  #openSc{width:216px;height:54px;border:3px solid var(--line);border-radius:14px;background:var(--accent);
+    color:#fff;font-family:inherit;font-size:15.5px;font-weight:700;cursor:pointer;
+    box-shadow:0 4px 0 var(--line);transition:transform .06s,box-shadow .06s}
+  #openSc:hover{transform:rotate(calc(var(--tiltn) * -0.55 * 1deg))}
+  #openSc:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+  body.nofound .empty{display:block}
+  body.nofound .now,body.nofound .progress,body.nofound .controls,body.nofound .volrow{display:none}
+  body.nofound .heart{display:none}
+  body.nofound .lconf{display:none}
+  @keyframes swapOutL{to{transform:scale(.55) translateX(-46px);opacity:0}}
+  @keyframes swapOutR{to{transform:scale(.55) translateX(46px);opacity:0}}
+  @keyframes swapInL{from{transform:scale(.55) translateX(46px);opacity:0}}
+  @keyframes swapInR{from{transform:scale(.55) translateX(-46px);opacity:0}}
+  .now.swapOutL{animation:swapOutL .16s ease-in both}
+  .now.swapOutR{animation:swapOutR .16s ease-in both}
+  .now.swapInL{animation:swapInL .22s cubic-bezier(.2,.9,.3,1.25) both}
+  .now.swapInR{animation:swapInR .22s cubic-bezier(.2,.9,.3,1.25) both}
+</style>
+</head>
+<body>
+  <header>
+    <button class="heart" id="btnLike" data-i18n-title="t_like" title="喜欢">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path class="hp" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </button>
+    <button class="gear" id="btnTheme" data-i18n-title="theme_title" title="切换浅色 / 暗色">☀️</button>
+    <button class="gear" id="openOpts" data-i18n-title="t_open" title="打开设置">⚙️</button>
+  </header>
+  <div class="lconf" id="likeConfirm">
+    <button class="lcb" id="lcCancel" data-i18n="lc_cancel">取消</button>
+    <button class="lcb" id="lcOk" data-i18n="lc_ok">确认</button>
+  </div>
+  <div id="staleTip" data-i18n="stale_tip"></div>
+  <div class="empty">
+    <button id="openSc" data-i18n="open_sc">打开 SoundCloud</button>
+  </div>
+  <div class="now">
+    <div class="art" id="art"></div>
+    <div class="titlerow">
+      <div class="title" id="title"><span class="tscroll" id="tscroll">—</span></div>
+      <div class="artist" id="artist" style="display:none"></div>
+    </div>
+  </div>
+  <div class="progress">
+    <div class="times"><span id="tcur">0:00</span><span id="tdur">0:00</span></div>
+    <div class="pslot">
+      <input type="range" id="seek" min="0" max="1000" value="0" style="display:none">
+      <div class="wave" id="wave" style="display:none"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="kb mini" id="btnShuffle" data-i18n-title="t_shuffle" title="随机播放">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+    </button>
+    <button class="kb side" id="btnPrev" data-i18n-title="t_prev" title="上一首">
+      <svg width="22" height="22" viewBox="0 0 20 20"><path d="M14 3v14L5 10z" fill="currentColor"/><rect x="3" y="3" width="2.6" height="14" rx="1" fill="currentColor"/></svg>
+    </button>
+    <button class="kb main" id="btnToggle" data-i18n-title="t_toggle" title="播放 / 暂停">
+      <svg id="icoPlay" width="26" height="26" viewBox="0 0 24 24"><path d="M7 4v16l14-8z" fill="#fff"/></svg>
+      <svg id="icoPause" width="26" height="26" viewBox="0 0 24 24" style="display:none"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="#fff"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="#fff"/></svg>
+      <i id="icoSpin" style="display:none"></i>
+    </button>
+    <button class="kb side" id="btnNext" data-i18n-title="t_next" title="下一首">
+      <svg width="22" height="22" viewBox="0 0 20 20"><path d="M6 3v14l9-7z" fill="currentColor"/><rect x="14.4" y="3" width="2.6" height="14" rx="1" fill="currentColor"/></svg>
+    </button>
+    <button class="kb mini" id="btnRepeat" data-i18n-title="t_repeat" title="循环播放（关 → 全部 → 单曲）">
+      <i class="r1">1</i>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    </button>
+  </div>
+  <div class="volrow">
+    <button class="kb" id="btnMute" data-i18n-title="t_mute" title="静音切换">
+      <svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 7v6h3.5L11 17V3L6.5 7z" fill="currentColor"/><path id="volWave" d="M13.5 6.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="volwrap">
+      <input type="range" id="vol" min="0" max="100" step="5" value="100" style="display:none">
+      <div class="volwhite" id="volWhite" style="display:none">
+        <div class="wfill" id="volWFill"></div>
+      </div>
+      <span class="pct" id="volPct">100%</span>
+    </div>
+  </div>
+  <script src="defaults.js"></script>
+  <script src="i18n.js"></script>
+  <script src="sound.js"></script>
+
+  <script src="stub-loader.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

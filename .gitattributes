@@ -1,0 +1,10 @@
+# 统一行尾策略：仓库内一律 LF；工作区行尾由各平台 checkout 自行决定。
+# 新增文本文件请按此规则入库（git add 时自动转换），不要再提交 CRLF。
+* text=auto
+*.js text eol=lf
+*.cjs text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.png binary

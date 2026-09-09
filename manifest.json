@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "SCKit · SoundCloud 单键遥控",
+  "version": "1.1.0",
+  "minimum_chrome_version": "88",
+  "description": "SCKit —— soundcloud.com 单键遥控：切歌(s/w)、快进快退(d/a)、喜欢(x)、随机/循环，全局快捷键(Alt+Shift+P/N/B)，弹窗迷你遥控器，按键音效与气泡提示，中英双语。",
+  "permissions": ["storage", "tabs", "scripting"],
+  "host_permissions": ["https://soundcloud.com/*", "https://*.soundcloud.com/*", "<all_urls>"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "SCKit · SoundCloud 迷你遥控器",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://soundcloud.com/*", "https://*.soundcloud.com/*"],
+      "js": ["defaults.js", "i18n.js", "sound.js", "toast.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options.html",
+  "commands": {
+    "sc-toggle": {
+      "suggested_key": { "default": "Alt+Shift+P" },
+      "description": "播放 / 暂停（全局）"
+    },
+    "sc-next": {
+      "suggested_key": { "default": "Alt+Shift+N" },
+      "description": "下一首（全局）"
+    },
+    "sc-prev": {
+      "suggested_key": { "default": "Alt+Shift+B" },
+      "description": "上一首（全局）"
+    }
+  }
+}

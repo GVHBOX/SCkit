@@ -1,0 +1,11 @@
+# ── 本地依赖（不入库）──
+node_modules/
+
+# ── 浏览器自测页（非 node 测试资产，不入库）──
+selftest/
+
+# ── 开发过程报告（仅本地留档，不入库）──
+*-report.html
+
+# ── AI 工具工作目录 ──
+.workbuddy-ai/
