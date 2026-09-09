@@ -165,7 +165,6 @@
   }
   function applyCmd(msg) {
     const a = msg.cmd;
-    // 返回本次执行的操作名(供全局键反馈使用);无对应动作返回 null
     if (a === 'next') {
       clickBtn(SEL.next);
       return 'next';
@@ -201,7 +200,6 @@
     return null;
   }
 
-  // 全局快捷键触发时,在 SoundCloud 页面内给出与页面内按键一致的音效+气泡反馈
   function globalFeedback(kind) {
     playSound(kind);
     if (cfg.toastKey || cfg.toastIcon || cfg.toastText) {
@@ -309,7 +307,6 @@
         if (msg.action === 'getState') sendResponse(getState());
         else if (msg.action === 'cmd') {
           const done = applyCmd(msg);
-          // 全局快捷键(background 中继而来)触发时,页面内给音效+气泡反馈
           if (msg.global === true && done) globalFeedback(done);
           sendResponse(getState());
         }
@@ -324,8 +321,6 @@
       custom: cfg.customSounds
     });
   }
-  // 气泡统一走 toast.js(manifest 已在 content_scripts 注入,自带 --sckit-s 大小缩放),
-  // 与 background 注入非 SC 页用的是同一实现,气泡大小设置全局一致生效。
   const TOAST_ICONS = (window.SCKIT_TOAST && window.SCKIT_TOAST.ICONS) ||
     { next: '⏭', prev: '⏮', ff: '⏩', rw: '⏪', like: '❤️', unlike: '💔', unlike_arm: '⚠️', play: '▶️', pause: '⏸️' };
 

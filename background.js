@@ -1,7 +1,3 @@
-// SCKit 全局快捷键后台:
-// - 任意页面按下 Alt+Shift+P/N/B → 找到 SoundCloud 标签页执行对应操作
-// - 若操作执行时当前活动页不是 SoundCloud,则往当前页注入一个气泡(toast)显示按键与结果
-// - SoundCloud 页面内的按键音效/气泡由 content.js 自己完成,这里不重复
 (function () {
   'use strict';
 
@@ -48,7 +44,6 @@
 
   function fmtKey(s) {
     if (!s) return '';
-    // 'Alt+Shift+P' → 每段首字母大写,统一 ' + ' 连接
     return s.split('+').map((p) => {
       p = p.trim();
       return p.length <= 1 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
@@ -62,8 +57,8 @@
       if (!tabs || !tabs.length) return;
       const tab = tabs[0];
       if (!tab || tab.id == null) return;
-      if (tab.id === scTabId) return;            // 操作目标就是当前页 → content 自己会反馈
-      if (isSoundCloud(tab.url)) return;         // 当前页是 SC → content 自己会反馈
+      if (tab.id === scTabId) return;
+      if (isSoundCloud(tab.url)) return;
       loadShortcuts((map) => {
         const keyText = fmtKey(map[command] || '');
         const opts = {
