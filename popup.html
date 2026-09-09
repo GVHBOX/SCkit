@@ -21,7 +21,7 @@
     font:15.5px/1.5 "Segoe UI",system-ui,"Microsoft YaHei",sans-serif}
   header{display:flex;align-items:center;gap:10px;padding:7px 12px 10px}
   header>svg{flex:0 0 auto}
-  #btnTheme{margin-left:auto}
+  #btnReload{margin-left:auto}
   .heart{width:36px;height:36px;flex:0 0 auto;position:relative;display:inline-flex;align-items:center;justify-content:center;
     background:var(--panel2);border:3px solid var(--line);border-radius:10px;box-shadow:0 3px 0 var(--line);
     padding:0;cursor:pointer;color:var(--muted);transition:transform .06s,box-shadow .06s}
@@ -176,9 +176,9 @@
     <button class="heart" id="btnLike" data-i18n-title="t_like" title="喜欢">
       <svg width="20" height="20" viewBox="0 0 24 24"><path class="hp" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
     </button>
+    <button class="gear" id="btnReload" data-i18n-title="reload_sc" title="刷新 SoundCloud 页面并重新同步">🔄</button>
     <button class="gear" id="btnTheme" data-i18n-title="theme_title" title="切换浅色 / 暗色">☀️</button>
     <button class="gear" id="openOpts" data-i18n-title="t_open" title="打开设置">⚙️</button>
-    <button class="gear" id="btnReload" data-i18n-title="reload_sc" title="刷新 SoundCloud 页面并重新同步">🔄</button>
   </header>
   <div class="lconf" id="likeConfirm">
     <button class="lcb" id="lcCancel" data-i18n="lc_cancel">取消</button>
